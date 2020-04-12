@@ -1,4 +1,5 @@
 sudo: required
+language: generic 
 services:
     - docker
 
@@ -6,10 +7,17 @@ before_install:
     - docker build -t levanderia/react-test -f ./client/Dockerfile.dev ./client
 
 script:
-    - docker run levanderia/react-test npm test -- --coverage
+    - docker run -e CI=true levanderia/react-test npm test
 
 after_success:
     - docker build -t levanderia/multi-client ./client
     - docker build -t levanderia/multi-nginx ./nginx
     - docker build -t levanderia/multi-server ./server
     - docker build -t levanderia/multi-worker ./worker  
+    #log in to the docker hub
+    - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+    #take those images and push them to docker hub
+    - docker push levanderia/multi-client
+    - docker push levanderia/multi-nginx
+    - docker push levanderia/multi-server
+    - docker push levanderia/multi-worker
